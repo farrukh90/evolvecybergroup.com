@@ -1,0 +1,14 @@
+---
+- name: Create ec2 instance
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks: 
+    - name: Create ec2 Instance 
+      ec2:
+        key_name: dynamic-ansible
+        instance_type: t2.micro
+        image: ami-09693313102a30b2c 
+        assign_public_ip: yes 
+        region: eu-west-1 
+        vpc_subnet_id: subnet-20b5a569
