@@ -1,0 +1,89 @@
+---
+- hosts: all   
+  tasks: 
+    - name: Copy repo to remote system   #4 
+      #when: ansible_os_family == "RedHat"
+      #opy:
+        #src: /etc/yum.repos.d/r1soft.repo
+        #dest: /etc/yum.repos.d/r1soft.repo
+
+
+    - name: Install r1soft agent
+      when: ansible_os_family == "RedHat"
+      yum: 
+        name: serverbackup-enterprise-agent  
+
+
+    - name: Start r1soft agent 
+      when: ansible_distribution_major_version == "7"   
+      command: "/etc/init.d/cdp-agent start"     
+
+
+
+    - name: Start r1soft on centos 6 
+      when: ansible_distribution_major_version == "6"
+      service:
+        name: cdp-agent
+        state: restarted
+        enabled: yes
+
+
+    - name: Get key from server
+      command: "r1soft-setup --get-key   http://206.81.13.161:8080" 
+
+
+    - name: Open port for 1167 on centos 7 
+      when: ansible_distribution_major_version == "7"
+      firewalld:
+        port: 1167/tcp
+        permanent: true
+        state: enabled
+      ignore_errors: true
+
+
+
+    - name: Install r1soft agent on Debian Family
+      when: ansible_os_family == "Debian"
+      command:  echo deb http://repo.r1soft.com/apt stable main >> /etc/apt/sources.list
+
+    - name: Install r1soft agent on Debian Family
+      when: ansible_os_family == "Debian"
+      get_url: 
+        url: http://repo.r1soft.com/r1soft.asc
+        dest: /tmp/r1soft.asc
+
+
+    - name: Install r1soft agent on Debian Family
+      when: ansible_os_family == "Debian"
+      command: apt-key add /tmp/r1soft.asc 
+
+    - name: Install r1soft agent on Debian Family
+      when: ansible_os_family == "Debian"
+      package: 
+        name: "*" 
+        state: latest
+        force_apt_get: True
+
+
+
+    - name: Install r1soft agent on Debian Family
+      when: ansible_os_family == "Debian"
+      package: 
+        name: serverbackup-enterprise-agent 
+ 
+
+    - name: Get key from server
+      when: ansible_os_family == "Debian"
+      command: "r1soft-setup --get-key   http://206.81.13.161:8080" 
+
+
+
+    - name: Allow incoming access to eth0 from 206.81.13.161 port 1167 
+      when: ansible_os_family == "Debian"
+      ufw:
+        rule: allow
+        direction: in
+        proto: tcp
+        src: 206.81.13.161
+        from_port: 1167
+        to_port: 1167
